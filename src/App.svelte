@@ -1,12 +1,24 @@
 <script lang="ts">
 	
 	export let title: string;
+	let counter = 0;
+	let andCounter = 0;
+
+	function handleClick () {
+		counter++;
+	}
+	function handleAndClick () {
+		andCounter++;
+	}
 </script>
 
 <main>
 	<h1>{title}!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
-	<and-button  primary=true label="button"></and-button>
+	<p>We can count! {counter}</p>
+	<button on:click={handleClick} label="button">Standard Button</button>
+	
+	<p>We can't count! {andCounter}</p>
+	<and-button on:click={handleAndClick}  primary=true label="AND Button"></and-button>
 </main>
 
 <style>

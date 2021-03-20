@@ -46,6 +46,10 @@ var app = (function () {
     function space() {
         return text(' ');
     }
+    function listen(node, event, handler, options) {
+        node.addEventListener(event, handler, options);
+        return () => node.removeEventListener(event, handler, options);
+    }
     function attr(node, attribute, value) {
         if (value == null)
             node.removeAttribute(attribute);
@@ -283,6 +287,19 @@ var app = (function () {
         dispatch_dev('SvelteDOMRemove', { node });
         detach(node);
     }
+    function listen_dev(node, event, handler, options, has_prevent_default, has_stop_propagation) {
+        const modifiers = options === true ? ['capture'] : options ? Array.from(Object.keys(options)) : [];
+        if (has_prevent_default)
+            modifiers.push('preventDefault');
+        if (has_stop_propagation)
+            modifiers.push('stopPropagation');
+        dispatch_dev('SvelteDOMAddEventListener', { node, event, handler, modifiers });
+        const dispose = listen(node, event, handler, options);
+        return () => {
+            dispatch_dev('SvelteDOMRemoveEventListener', { node, event, handler, modifiers });
+            dispose();
+        };
+    }
     function attr_dev(node, attribute, value) {
         attr(node, attribute, value);
         if (value == null)
@@ -334,12 +351,19 @@ var app = (function () {
     	let t0;
     	let t1;
     	let t2;
-    	let p;
+    	let p0;
     	let t3;
-    	let a;
+    	let t4;
     	let t5;
-    	let t6;
+    	let button;
+    	let t7;
+    	let p1;
+    	let t8;
+    	let t9;
+    	let t10;
     	let and_button;
+    	let mounted;
+    	let dispose;
 
     	const block = {
     		c: function create() {
@@ -348,23 +372,29 @@ var app = (function () {
     			t0 = text(/*title*/ ctx[0]);
     			t1 = text("!");
     			t2 = space();
-    			p = element("p");
-    			t3 = text("Visit the ");
-    			a = element("a");
-    			a.textContent = "Svelte tutorial";
-    			t5 = text(" to learn how to build Svelte apps.");
-    			t6 = space();
+    			p0 = element("p");
+    			t3 = text("We can count! ");
+    			t4 = text(/*counter*/ ctx[1]);
+    			t5 = space();
+    			button = element("button");
+    			button.textContent = "Standard Button";
+    			t7 = space();
+    			p1 = element("p");
+    			t8 = text("We can't count! ");
+    			t9 = text(/*andCounter*/ ctx[2]);
+    			t10 = space();
     			and_button = element("and-button");
     			attr_dev(h1, "class", "svelte-1tky8bj");
-    			add_location(h1, file, 4, 1, 55);
-    			attr_dev(a, "href", "https://svelte.dev/tutorial");
-    			add_location(a, file, 5, 14, 87);
-    			add_location(p, file, 5, 1, 74);
+    			add_location(h1, file, 12, 1, 182);
+    			add_location(p0, file, 13, 1, 201);
+    			attr_dev(button, "label", "button");
+    			add_location(button, file, 14, 1, 233);
+    			add_location(p1, file, 16, 1, 307);
     			set_custom_element_data(and_button, "primary", "true");
-    			set_custom_element_data(and_button, "label", "button");
-    			add_location(and_button, file, 6, 1, 185);
+    			set_custom_element_data(and_button, "label", "AND Button");
+    			add_location(and_button, file, 17, 1, 344);
     			attr_dev(main, "class", "svelte-1tky8bj");
-    			add_location(main, file, 3, 0, 47);
+    			add_location(main, file, 11, 0, 174);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -375,20 +405,38 @@ var app = (function () {
     			append_dev(h1, t0);
     			append_dev(h1, t1);
     			append_dev(main, t2);
-    			append_dev(main, p);
-    			append_dev(p, t3);
-    			append_dev(p, a);
-    			append_dev(p, t5);
-    			append_dev(main, t6);
+    			append_dev(main, p0);
+    			append_dev(p0, t3);
+    			append_dev(p0, t4);
+    			append_dev(main, t5);
+    			append_dev(main, button);
+    			append_dev(main, t7);
+    			append_dev(main, p1);
+    			append_dev(p1, t8);
+    			append_dev(p1, t9);
+    			append_dev(main, t10);
     			append_dev(main, and_button);
+
+    			if (!mounted) {
+    				dispose = [
+    					listen_dev(button, "click", /*handleClick*/ ctx[3], false, false, false),
+    					listen_dev(and_button, "click", /*handleAndClick*/ ctx[4], false, false, false)
+    				];
+
+    				mounted = true;
+    			}
     		},
     		p: function update(ctx, [dirty]) {
     			if (dirty & /*title*/ 1) set_data_dev(t0, /*title*/ ctx[0]);
+    			if (dirty & /*counter*/ 2) set_data_dev(t4, /*counter*/ ctx[1]);
+    			if (dirty & /*andCounter*/ 4) set_data_dev(t9, /*andCounter*/ ctx[2]);
     		},
     		i: noop,
     		o: noop,
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(main);
+    			mounted = false;
+    			run_all(dispose);
     		}
     	};
 
@@ -407,6 +455,17 @@ var app = (function () {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots("App", slots, []);
     	let { title } = $$props;
+    	let counter = 0;
+    	let andCounter = 0;
+
+    	function handleClick() {
+    		$$invalidate(1, counter++, counter);
+    	}
+
+    	function handleAndClick() {
+    		$$invalidate(2, andCounter++, andCounter);
+    	}
+
     	const writable_props = ["title"];
 
     	Object.keys($$props).forEach(key => {
@@ -417,17 +476,25 @@ var app = (function () {
     		if ("title" in $$props) $$invalidate(0, title = $$props.title);
     	};
 
-    	$$self.$capture_state = () => ({ title });
+    	$$self.$capture_state = () => ({
+    		title,
+    		counter,
+    		andCounter,
+    		handleClick,
+    		handleAndClick
+    	});
 
     	$$self.$inject_state = $$props => {
     		if ("title" in $$props) $$invalidate(0, title = $$props.title);
+    		if ("counter" in $$props) $$invalidate(1, counter = $$props.counter);
+    		if ("andCounter" in $$props) $$invalidate(2, andCounter = $$props.andCounter);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [title];
+    	return [title, counter, andCounter, handleClick, handleAndClick];
     }
 
     class App extends SvelteComponentDev {
